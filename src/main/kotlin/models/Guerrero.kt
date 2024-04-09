@@ -9,6 +9,6 @@ class Guerrero(
     isDeleted: Boolean? = false
 ):Personaje(nombre,habilidad,ataque,edad,arma,isDeleted) {
     override fun toString(): String {
-        return "~Guerrero $nombre - $edad - $ataque~"
+        return "Guerrero (nombre: $nombre, edad: $edad, ataque: $ataque, habilidad: $habilidad, arma: $arma)"
     }
 }

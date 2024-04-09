@@ -9,6 +9,6 @@ class Enemigo(
     isDeleted: Boolean? = false
 ):Personaje(nombre,habilidad,ataque,edad,arma,isDeleted){
     override fun toString(): String {
-        return "Enemigo $nombre - $edad - $ataque~"
+        return "Enemigo (nombre: $nombre, edad: $edad, ataque: $ataque, habilidad: $habilidad, arma: $arma)"
     }
 }
