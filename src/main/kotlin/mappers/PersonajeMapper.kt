@@ -31,7 +31,7 @@ fun Personaje.toPersonajeDto():PersonajeDto{
     return when(this) {
         is Guerrero -> PersonajeDto(
             nombre = this.nombre,
-            tipo = "Guerrero",
+            tipo = "Guerreros",
             habilidad = this.habilidad,
             ataque = this.ataque,
             edad = this.edad,
@@ -41,7 +41,7 @@ fun Personaje.toPersonajeDto():PersonajeDto{
 
         is Enemigo -> PersonajeDto(
             nombre = this.nombre,
-            tipo = "Enemigo",
+            tipo = "Enemigos",
             habilidad = this.habilidad,
             ataque = this.ataque,
             edad = this.edad,

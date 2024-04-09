@@ -32,9 +32,9 @@ object DatabaseManager: AutoCloseable {
     private fun initTablas(){
         logger.debug { "Creando tablas" }
         try {
-            val data = ClassLoader.getSystemResourceAsStream("data.sql")?.bufferedReader()!!
+            val data = ClassLoader.getSystemResourceAsStream("tables.sql")?.bufferedReader()!!
             scriptRunner(data, true)
-            logger.debug { "Tabla estudiantes creada" }
+            logger.debug { "Tabla personajes creada" }
         }catch (e:Exception){
             logger.error { "Error al crear las tabalas: ${e.message}" }
         }

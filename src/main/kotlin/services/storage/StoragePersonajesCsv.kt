@@ -29,8 +29,8 @@ class StoragePersonajesCsv: Storage<Personaje> {
                 .map {
                     val data = it.split(",")
                     PersonajeDto(
-                        nombre = data[0],
-                        tipo = data[1],
+                        nombre = data[1],
+                        tipo = data[0],
                         habilidad = data[2],
                         ataque = data[3].toInt(),
                         edad = data[4].toInt(),

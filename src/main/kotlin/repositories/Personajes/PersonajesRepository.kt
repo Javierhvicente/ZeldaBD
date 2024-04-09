@@ -98,9 +98,9 @@ class PersonajesRepository: CrudRepository<Personaje, String> {
         logger.debug { "Guardando personaje $item" }
         try {
             var personaje: PersonajeDto = item.toPersonajeDto()
-            DatabaseManager.use {
+            DatabaseManager.use { db ->
                 val sql = "INSERT INTO personajes (nombre, tipo, habilidad, ataque, edad, arma, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?)"
-                val statement = it.connection?.prepareStatement(sql)!!
+                val statement = db.connection?.prepareStatement(sql)!!
                 statement.setString(1, personaje.nombre)
                 statement.setString(2, personaje.tipo)
                 statement.setString(3, personaje.habilidad)

@@ -1,5 +1,6 @@
 package org.example
 
+import org.example.models.Guerrero
 import org.example.repositories.Personajes.PersonajesRepository
 import org.example.services.cache.personajes.PersonajesCache
 import org.example.services.personajes.PersonajeServiceImpl
@@ -20,4 +21,5 @@ fun main() {
     personajesService.findAll().forEach {
         println(it)
     }
+
 }
