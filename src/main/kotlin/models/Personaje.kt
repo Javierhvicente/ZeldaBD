@@ -1,6 +1,6 @@
 package org.example.models
 
-abstract class Personajes(
+abstract class Personaje(
     val nombre:String,
     val habilidad:String,
     val ataque:Int,
