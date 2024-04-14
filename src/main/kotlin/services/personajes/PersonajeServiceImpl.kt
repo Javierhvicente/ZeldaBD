@@ -1,6 +1,5 @@
 package org.example.services.personajes
 
-import org.example.exceptions.personajes.PersonajeException
 import org.example.models.Personaje
 import org.example.repositories.Personajes.PersonajesRepository
 import org.example.services.cache.personajes.PersonajesCache
