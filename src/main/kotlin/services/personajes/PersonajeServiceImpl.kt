@@ -1,9 +1,15 @@
 package org.example.services.personajes
 
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.andThen
+import org.example.exceptions.personajes.PersonajeError
 import org.example.models.Personaje
 import org.example.repositories.Personajes.PersonajesRepository
 import org.example.services.cache.personajes.PersonajesCache
 import org.example.services.storage.Storage
+import org.example.validators.PersonajeValidator
 import org.lighthousegames.logging.logging
 
 private val logger = logging()
@@ -11,7 +17,8 @@ class PersonajeServiceImpl(
     private val storageCsv: Storage<Personaje>,
     private val storageJson: Storage<Personaje>,
     private val personajesRepository: PersonajesRepository,
-    private val personajesCache: PersonajesCache
+    private val personajesCache: PersonajesCache,
+    private val personajeValidator: PersonajeValidator
 ): PersonajesService {
     override fun loadFromCsv(): List<Personaje> {
         logger.debug { "Cargando personajes desde CSV" }
@@ -33,36 +40,36 @@ class PersonajeServiceImpl(
         storageJson.store(personajes)
     }
 
-    override fun findAll(): List<Personaje> {
+    override fun findAll(): Result<List<Personaje>, PersonajeError> {
         logger.debug { "Buscando todos los personajes " }
-        return personajesRepository.findAll()
+        return Ok(personajesRepository.findAll())
     }
 
-    override fun getByName(name: String): Personaje {
+    override fun getByName(name: String): Result<Personaje, PersonajeError> {
         logger.debug { "Buscando personaje por nombre: $name" }
-        return personajesCache.get(name) ?: personajesRepository.getByName(name)?.also {
-            personajesCache.put(name, it)
-        }?: throw PersonajeException.PersonajeNotFoundException("Personaje no encontrado con nombre $name")
+        return personajesRepository.getByName(name)?.let { Ok(it) }
+            ?: Err(PersonajeError.PersonajeNotFound("Personaje no encontrado con nombre: $name"))
     }
 
-    override fun update(name: String, item: Personaje): Personaje {
+    override fun update(name: String, item: Personaje): Result<Personaje, PersonajeError> {
         logger.debug { "Actualizando personaje con nombre: $name" }
-        return personajesRepository.update(name, item).also {
-            personajesCache.put(name, it!!)
-        } ?: throw PersonajeException.PersonajeNotFoundException("Personaje no encontrado con nombre $name")
-    }
-
-    override fun save(item: Personaje): Personaje {
-        logger.debug { "Guardando personaje $item" }
-        return personajesRepository.save(item).also {
-            personajesCache.put(item.nombre, item)
+        return personajeValidator.validate(item).andThen {
+            personajesRepository.update(name, item)
+                ?.let { Ok(it) }
+                ?: Err(PersonajeError.PersonajeNotUpdated("No se pudo actualizar al personaje con nombre $name"))
         }
     }
 
-    override fun delete(name: String, logical: Boolean): Personaje {
+    override fun save(item: Personaje): Result<Personaje, PersonajeError> {
+        logger.debug { "Guardando personaje $item" }
+        return personajeValidator.validate(item).andThen { Ok(personajesRepository.save(item))}
+
+    }
+
+    override fun delete(name: String, logical: Boolean): Result<Personaje, PersonajeError> {
         logger.debug { "Borrando personaje con nombre $name" }
-        return personajesRepository.delete(name, logical).also {
-            personajesCache.remove(name)
-        }?: throw PersonajeException.PersonajeNotFoundException("Persona no encontrada con nombre $name")
+        return personajesRepository.delete(name, false)
+            ?.let { Ok(it) }
+            ?: Err(PersonajeError.PersonajeNotDeleted("No se ha podido borrar el personaje con nombre $name"))
     }
 }
