@@ -8,7 +8,6 @@ import kotlinx.serialization.json.Json
 import org.example.config.Config
 import org.example.dto.PersonajeDto
 import org.example.exceptions.storage.StorageError
-import org.example.services.storage.storage.StorageException
 import org.example.mappers.toPersonaje
 import org.example.mappers.toPersonajeDto
 import org.example.models.Personaje
