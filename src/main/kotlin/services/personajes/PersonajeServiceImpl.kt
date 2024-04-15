@@ -2,6 +2,7 @@ package org.example.services.personajes
 
 import com.github.michaelbull.result.*
 import org.example.exceptions.personajes.PersonajeError
+import org.example.exceptions.storage.StorageError
 import org.example.models.Personaje
 import org.example.repositories.Personajes.PersonajesRepository
 import org.example.services.cache.personajes.PersonajesCache
@@ -17,24 +18,34 @@ class PersonajeServiceImpl(
     private val personajesCache: PersonajesCache,
     private val personajeValidator: PersonajeValidator
 ): PersonajesService {
-    override fun loadFromCsv(): List<Personaje> {
+    override fun loadFromCsv(): Result<List<Personaje>, StorageError> {
         logger.debug { "Cargando personajes desde CSV" }
-        return storageCsv.load("personajes.csv")
+        return storageCsv.load("personajes.csv").andThen { personajes->
+            personajes.forEach{ p->
+                personajesRepository.save(p)
+            }
+            Ok(personajes)
+        }
     }
 
-    override fun storeFromCsv(personajes: List<Personaje>) {
+    override fun storeFromCsv(personajes: List<Personaje>): Result<Unit, StorageError> {
         logger.debug { "Guardando personajes en CSV" }
-        storageCsv.store(personajes)
+        return storageCsv.store(personajes)
     }
 
-    override fun loadFromJsom(): List<Personaje> {
+    override fun loadFromJsom(): Result<List<Personaje>, StorageError> {
         logger.debug { "Cargando personajes desde JSON" }
-        return storageJson.load("personajes-back.json")
+        return storageJson.load("personajes-back.json").andThen { personajes ->
+            personajes.forEach { p->
+                personajesRepository.save(p)
+            }
+            Ok(personajes)
+        }
     }
 
-    override fun storeFromJsom(personajes: List<Personaje>) {
+    override fun storeFromJsom(personajes: List<Personaje>): Result<Unit, StorageError> {
         logger.debug { "Guardando personajes en JSON" }
-        storageJson.store(personajes)
+        return storageJson.store(personajes)
     }
 
     override fun findAll(): Result<List<Personaje>, PersonajeError> {
