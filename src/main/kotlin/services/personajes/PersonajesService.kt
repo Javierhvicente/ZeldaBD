@@ -13,5 +13,5 @@ interface PersonajesService {
     fun getByName(name: String): Result<Personaje, PersonajeError>
     fun update(name: String, item: Personaje): Result<Personaje, PersonajeError>
     fun save(item: Personaje):Result<Personaje, PersonajeError>
-    fun delete(name: String, logical: Boolean = false): Result<Personaje, PersonajeError>
+    fun delete(name: String): Result<Personaje, PersonajeError>
 }

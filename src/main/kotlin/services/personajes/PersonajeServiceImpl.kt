@@ -47,29 +47,32 @@ class PersonajeServiceImpl(
 
     override fun getByName(name: String): Result<Personaje, PersonajeError> {
         logger.debug { "Buscando personaje por nombre: $name" }
-        return personajesRepository.getByName(name)?.let { Ok(it) }
-            ?: Err(PersonajeError.PersonajeNotFound("Personaje no encontrado con nombre: $name"))
+        return personajesRepository.getByName(name)
+            ?.let { Ok(it) }
+            ?: Err(PersonajeError.PersonajeNotFound("No se ha encontrado el personaje con nombre $name"))
     }
 
     override fun update(name: String, item: Personaje): Result<Personaje, PersonajeError> {
         logger.debug { "Actualizando personaje con nombre: $name" }
-        return personajeValidator.validate(item).andThen {
-            personajesRepository.update(name, item)
-                ?.let { Ok(it) }
-                ?: Err(PersonajeError.PersonajeNotUpdated("No se pudo actualizar al personaje con nombre $name"))
-        }
+        return personajeValidator.validate(item)
+            .andThen { Ok(personajesRepository.update(name, item))  }
+            .andThen { Ok(personajesCache.put(item.nombre, item)) }
+            .andThen { Err(PersonajeError.PersonajeNotFound("No se ha actualizado al personaje con nombre: $name")) }
     }
 
     override fun save(item: Personaje): Result<Personaje, PersonajeError> {
         logger.debug { "Guardando personaje $item" }
-        return personajeValidator.validate(item).andThen { Ok(personajesRepository.save(item))}
+        return personajeValidator.validate(item)
+            .andThen { Ok(personajesCache.put(item.nombre, item)) }
+            .andThen { Ok(personajesRepository.save(item))}
+            .andThen { Err(PersonajeError.PersonajeInvalido("No se ha podido guardar al personaje con nombre ${item.nombre}")) }
 
     }
 
-    override fun delete(name: String, logical: Boolean): Result<Personaje, PersonajeError> {
+    override fun delete(name: String): Result<Personaje, PersonajeError> {
         logger.debug { "Borrando personaje con nombre $name" }
-        return personajesRepository.delete(name, false)
-            ?.let { Ok(it) }
+        return personajesRepository.delete(name)
+            ?.let { Ok(it).also { personajesCache.remove(name) } }
             ?: Err(PersonajeError.PersonajeNotDeleted("No se ha podido borrar el personaje con nombre $name"))
     }
 }

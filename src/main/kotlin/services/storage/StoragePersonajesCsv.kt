@@ -2,6 +2,7 @@ package org.example.services.storage
 
 import org.example.config.Config
 import org.example.dto.PersonajeDto
+import org.example.exceptions.storage.StorageError
 import org.example.exceptions.storage.StorageException
 import org.example.mappers.toPersonaje
 import org.example.mappers.toPersonajeDto
