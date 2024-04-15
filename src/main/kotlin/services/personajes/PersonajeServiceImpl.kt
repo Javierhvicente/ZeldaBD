@@ -60,25 +60,32 @@ class PersonajeServiceImpl(
 
     override fun update(name: String, item: Personaje): Result<Personaje, PersonajeError> {
         logger.debug { "Actualizando personaje con nombre: $name" }
-        return personajeValidator.validate(item)
-            .andThen { Ok(personajesRepository.update(name, item))  }
-            .andThen { Ok(personajesCache.put(item.nombre, item)) }
-            .andThen { Err(PersonajeError.PersonajeNotFound("No se ha actualizado al personaje con nombre: $name")) }
+        return personajeValidator.validate(item).andThen {  p ->
+            personajesRepository.update(p.nombre, p)
+                ?.let { Ok(it) }
+                ?: Err(PersonajeError.PersonajeNotUpdated("No se ha podido actualizar el personaje con nombre: $name"))
+        }.andThen {
+            personajesCache.put(name, item)
+        }
     }
 
     override fun save(item: Personaje): Result<Personaje, PersonajeError> {
         logger.debug { "Guardando personaje $item" }
-        return personajeValidator.validate(item)
-            .andThen { Ok(personajesCache.put(item.nombre, item)) }
-            .andThen { Ok(personajesRepository.save(item))}
-            .andThen { Err(PersonajeError.PersonajeInvalido("No se ha podido guardar al personaje con nombre ${item.nombre}")) }
+        return personajeValidator.validate(item).andThen {
+            Ok(personajesRepository.save(it))
+        }.andThen { p ->
+            personajesCache.put(p.nombre, p )
+        }
 
     }
 
     override fun delete(name: String): Result<Personaje, PersonajeError> {
         logger.debug { "Borrando personaje con nombre $name" }
         return personajesRepository.delete(name)
-            ?.let { Ok(it).also { personajesCache.remove(name) } }
+            ?.let {
+                personajesCache.remove(name)
+                Ok(it)
+            }
             ?: Err(PersonajeError.PersonajeNotDeleted("No se ha podido borrar el personaje con nombre $name"))
     }
 }
