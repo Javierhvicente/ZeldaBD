@@ -1,9 +1,6 @@
 package org.example.services.personajes
 
-import com.github.michaelbull.result.Err
-import com.github.michaelbull.result.Ok
-import com.github.michaelbull.result.Result
-import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.*
 import org.example.exceptions.personajes.PersonajeError
 import org.example.models.Personaje
 import org.example.repositories.Personajes.PersonajesRepository
@@ -47,9 +44,18 @@ class PersonajeServiceImpl(
 
     override fun getByName(name: String): Result<Personaje, PersonajeError> {
         logger.debug { "Buscando personaje por nombre: $name" }
-        return personajesRepository.getByName(name)
-            ?.let { Ok(it) }
-            ?: Err(PersonajeError.PersonajeNotFound("No se ha encontrado el personaje con nombre $name"))
+        return personajesCache.get(name).mapBoth(
+            success = {
+                logger.debug { "Personaje encontrado en la cache" }
+                Ok(it)
+            },
+            failure = {
+                logger.debug { "Personaje no encontrado en la cache" }
+                personajesRepository.getByName(name)
+                    ?.let { Ok(it) }
+                    ?: Err(PersonajeError.PersonajeNotFound("No se ha encontrado personaje con nombre: $name"))
+            }
+        )
     }
 
     override fun update(name: String, item: Personaje): Result<Personaje, PersonajeError> {
