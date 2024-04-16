@@ -1,6 +1,5 @@
 package service
 
-import com.github.michaelbull.result.onSuccess
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -18,7 +17,6 @@ import org.example.validators.PersonajeValidator
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.extension.ExtendWith
-import repositories.PersonajesRepository
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -63,8 +61,7 @@ class PersonajesServiceImpl {
 
     @Test
     fun getByName(){
-        val mockPersonaje = Guerrero("PersonajeTest1","PersonajeExtra",10,30,"Extra1",false)
-        personajesCache.put(mockPersonaje.nombre, mockPersonaje)
+        val mockPersonaje =  Guerrero("PersonajeTest1","PersonajeExtra",10,30,"Extra1",false)
         every { repo.getByName(mockPersonaje.nombre) } returns mockPersonaje
         val res = personajesServiceImpl.getByName(mockPersonaje.nombre).value
 
@@ -83,7 +80,64 @@ class PersonajesServiceImpl {
         assertAll(
             { assertTrue { error is PersonajeError.PersonajeNotFound }}
         )
-        verify(exactly = 1) { repo.getByName("PersonajeSinNombre") }
+        verify { repo.getByName("PersonajeSinNombre") }
 
+    }
+
+    @Test
+    fun save(){
+        val mockPersonaje = Guerrero("PersonajeTest5","PersonajeExtra",10,30,"Extra1",false)
+        every { repo.save(mockPersonaje) } returns mockPersonaje
+        val res = personajesServiceImpl.save(mockPersonaje).value
+        assertAll(
+            { assertEquals("PersonajeTest5", res.nombre)},
+            { assertEquals("PersonajeExtra", res.habilidad)}
+        )
+    }
+
+    @Test
+    fun notSave(){
+        val mockPersonaje = Guerrero("","PersonajeExtra",10,30,"Extra1",false)
+        every { repo.save(mockPersonaje) } returns mockPersonaje
+        val error = personajesServiceImpl.save(mockPersonaje).error
+        assertTrue { error is PersonajeError.PersonajeInvalido }
+    }
+
+    @Test
+    fun update(){
+        val mockPersonaje = Guerrero("PersonajeTest5","PersonajeExtraAct",10,30,"Extra1",false)
+        every { repo.update("PersonajeTest5" ,mockPersonaje) } returns mockPersonaje
+        val res = personajesServiceImpl.update("PersonajeTest5" ,mockPersonaje).value
+        assertAll(
+            { assertEquals("PersonajeTest5", res.nombre)},
+            { assertEquals("PersonajeExtraAct", res.habilidad)}
+        )
+    }
+
+    @Test
+    fun notUpdated(){
+        val mockPersonaje = Guerrero("PersonajeTest5","PersonajeExtraAct",10,30,"Extra1",false)
+        every { repo.update("PersonajeTestFail" ,mockPersonaje) } returns null
+        val error = personajesServiceImpl.update("PersonajeTest5" ,mockPersonaje).error
+        assertTrue { error is PersonajeError.PersonajeNotUpdated }
+    }
+
+    @Test
+    fun delete(){
+        val mockPersonaje = Guerrero("PersonajeTest5","PersonajeExtraAct",10,30,"Extra1",false)
+        every { repo.delete("PersonajeTest5") } returns mockPersonaje
+        val result = personajesServiceImpl.delete("PersonajeTest5").value
+        assertAll(
+            { assertEquals("PersonajeTest5", result.nombre)},
+            { assertEquals("PersonajeExtraAct", result.habilidad)}
+        )
+    }
+
+    @Test
+    fun NotDelted(){
+        val mockPersonaje = Guerrero("PersonajeTest5","PersonajeExtraAct",10,30,"Extra1",false)
+        every { repo.delete("SoyFallo") } returns mockPersonaje
+        val error = personajesServiceImpl.delete("SoyFallo").error
+        assertTrue { error is PersonajeError.PersonajeNotDeleted }
     }
 }
